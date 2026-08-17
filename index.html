@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#04131f">
+    <title>Observatoire — Simulateur d’écosystème</title>
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/app.css">
+  </head>
+
+  <body>
+    <!-- Couche Vue : les valeurs et états seront pilotés par vos futurs contrôleurs. -->
+    <div class="app-shell" data-view="simulation-dashboard">
+      <header class="topbar panel" aria-label="Commandes principales">
+        <div class="topbar__brand">
+          <h1>Observatoire</h1>
+        </div>
+
+        <p class="simulation-status" role="status">
+          <span class="simulation-status__dot" aria-hidden="true"></span>
+          <span>Simulation active</span>
+        </p>
+
+        <p class="day-counter">
+          <span class="sr-only">Jour courant :</span>
+          Jour <strong id="day-counter">128</strong>
+        </p>
+
+        <div class="playback-controls">
+          <div class="playback-controls__actions" role="group" aria-label="Lecture de la simulation">
+            <button class="control-button" id="play-button" type="button">
+              <svg class="icon icon--play" aria-hidden="true">
+                <use href="#icon-play"></use>
+              </svg>
+              <span>Lecture</span>
+            </button>
+            <button class="control-button" id="pause-button" type="button">
+              <svg class="icon icon--pause" aria-hidden="true">
+                <use href="#icon-pause"></use>
+              </svg>
+              <span>Pause</span>
+            </button>
+          </div>
+
+          <fieldset class="speed-selector">
+            <legend class="sr-only">Vitesse de la simulation</legend>
+            <button class="speed-selector__button is-active" id="speed-x1" name="speed" type="button" value="1" aria-pressed="true">×1</button>
+            <button class="speed-selector__button" id="speed-x2" name="speed" type="button" value="2" aria-pressed="false">×2</button>
+            <button class="speed-selector__button" id="speed-x4" name="speed" type="button" value="4" aria-pressed="false">×4</button>
+          </fieldset>
+        </div>
+      </header>
+
+      <main class="dashboard">
+        <aside class="overview-column" aria-label="Aperçu des populations et navigation">
+          <article class="population-card population-card--grass" data-population="grass">
+            <span class="population-card__accent" aria-hidden="true"></span>
+            <svg class="population-card__illustration population-card__illustration--grass" aria-hidden="true">
+              <use href="#icon-grass"></use>
+            </svg>
+            <div class="population-card__content">
+              <h2>Herbe</h2>
+              <output id="grass-count" class="population-card__value">3&nbsp;842</output>
+              <p class="population-card__unit">unités</p>
+            </div>
+          </article>
+
+          <article class="population-card population-card--rabbits" data-population="rabbits">
+            <span class="population-card__accent" aria-hidden="true"></span>
+            <svg class="population-card__illustration population-card__illustration--rabbit" aria-hidden="true">
+              <use href="#icon-rabbit"></use>
+            </svg>
+            <div class="population-card__content">
+              <h2>Lapins</h2>
+              <output id="rabbit-count" class="population-card__value">87</output>
+              <p class="population-card__unit">individus</p>
+            </div>
+          </article>
+
+          <article class="population-card population-card--foxes" data-population="foxes">
+            <span class="population-card__accent" aria-hidden="true"></span>
+            <svg class="population-card__illustration population-card__illustration--fox" aria-hidden="true">
+              <use href="#icon-fox"></use>
+            </svg>
+            <div class="population-card__content">
+              <h2>Renards</h2>
+              <output id="fox-count" class="population-card__value">23</output>
+              <p class="population-card__unit">individus</p>
+            </div>
+          </article>
+
+          <div class="section-navigation panel" role="group" aria-label="Navigation de l’observatoire">
+            <ul>
+              <li>
+                <button class="navigation-link is-active" id="nav-ecosystem" type="button" data-view-target="ecosystem" aria-pressed="true">
+                  <svg class="navigation-link__icon" aria-hidden="true"><use href="#icon-grid"></use></svg>
+                  <span>Vue écosystème</span>
+                </button>
+              </li>
+              <li>
+                <button class="navigation-link" id="nav-charts" type="button" data-view-target="charts" aria-pressed="false">
+                  <svg class="navigation-link__icon" aria-hidden="true"><use href="#icon-chart"></use></svg>
+                  <span>Graphiques</span>
+                </button>
+              </li>
+              <li>
+                <button class="navigation-link" id="nav-settings" type="button" data-view-target="settings" aria-pressed="false">
+                  <svg class="navigation-link__icon" aria-hidden="true"><use href="#icon-sliders"></use></svg>
+                  <span>Paramètres</span>
+                </button>
+              </li>
+              <li>
+                <button class="navigation-link" id="nav-help" type="button" data-view-target="help" aria-pressed="false">
+                  <svg class="navigation-link__icon" aria-hidden="true"><use href="#icon-help"></use></svg>
+                  <span>Aide</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </aside>
+
+        <section class="workspace" aria-label="Zone d’observation">
+          <figure class="ecosystem-stage panel" id="ecosystem-panel" aria-labelledby="ecosystem-title" aria-describedby="ecosystem-description">
+            <figcaption id="ecosystem-title" class="sr-only">Terrain de la simulation</figcaption>
+            <p id="ecosystem-description" class="sr-only">
+              Zone de rendu de l’écosystème. Les populations actuelles sont aussi indiquées sous forme de texte dans les panneaux latéraux.
+            </p>
+            <canvas id="ecosystem-canvas" width="960" height="590" aria-label="Canvas vide prêt pour le rendu de l’écosystème"></canvas>
+          </figure>
+
+          <section class="chart-card panel" id="charts-panel" aria-labelledby="population-chart-title">
+            <header class="chart-card__header">
+              <h2 id="population-chart-title">Évolution des populations</h2>
+              <ul class="chart-legend" aria-label="Légende du graphique">
+                <li><span class="chart-legend__line chart-legend__line--grass" aria-hidden="true"></span>Herbe</li>
+                <li><span class="chart-legend__line chart-legend__line--rabbits" aria-hidden="true"></span>Lapins</li>
+                <li><span class="chart-legend__line chart-legend__line--foxes" aria-hidden="true"></span>Renards</li>
+              </ul>
+            </header>
+
+            <div class="chart-frame">
+              <div class="chart-y-axis" aria-hidden="true">
+                <span>5&nbsp;000</span>
+                <span>4&nbsp;000</span>
+                <span>3&nbsp;000</span>
+                <span>2&nbsp;000</span>
+                <span>1&nbsp;000</span>
+                <span>0</span>
+              </div>
+              <div class="chart-plot">
+                <canvas id="population-chart" width="860" height="176" aria-label="Canvas vide prêt pour le graphique des populations"></canvas>
+              </div>
+              <div class="chart-x-axis" aria-hidden="true">
+                <span>0</span>
+                <span>20</span>
+                <span>40</span>
+                <span>60</span>
+                <span>80</span>
+                <span>100</span>
+                <span>120</span>
+                <span>140</span>
+              </div>
+              <p class="chart-axis-title">Jours</p>
+            </div>
+          </section>
+        </section>
+
+        <aside class="controls-column" aria-label="Réglages et valeurs actuelles">
+          <section class="settings-card panel" id="settings-panel" aria-labelledby="settings-title">
+            <h2 id="settings-title">Paramètres</h2>
+
+            <form id="parameters-form" class="settings-form">
+              <div class="range-control range-control--grass">
+                <div class="range-control__heading">
+                  <label for="grass-growth">Croissance de l’herbe</label>
+                  <output id="grass-growth-output" for="grass-growth">62&nbsp;%</output>
+                </div>
+                <input id="grass-growth" name="grassGrowth" type="range" min="0" max="100" value="62">
+                <div class="range-control__scale" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+
+              <div class="range-control">
+                <div class="range-control__heading">
+                  <label for="world-capacity">Capacité du milieu</label>
+                  <output id="world-capacity-output" for="world-capacity">5&nbsp;000</output>
+                </div>
+                <input id="world-capacity" name="worldCapacity" type="range" min="1000" max="10000" value="5000">
+                <div class="range-control__scale" aria-hidden="true"><span>1&nbsp;000</span><span>10&nbsp;000</span></div>
+              </div>
+
+              <div class="range-control">
+                <div class="range-control__heading">
+                  <label for="rabbit-reproduction">Taux de reproduction lapins</label>
+                  <output id="rabbit-reproduction-output" for="rabbit-reproduction">68&nbsp;%</output>
+                </div>
+                <input id="rabbit-reproduction" name="rabbitReproduction" type="range" min="0" max="100" value="68">
+                <div class="range-control__scale" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+
+              <div class="range-control">
+                <div class="range-control__heading">
+                  <label for="fox-reproduction">Taux de reproduction renards</label>
+                  <output id="fox-reproduction-output" for="fox-reproduction">45&nbsp;%</output>
+                </div>
+                <input id="fox-reproduction" name="foxReproduction" type="range" min="0" max="100" value="45">
+                <div class="range-control__scale" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+
+              <div class="range-control">
+                <div class="range-control__heading">
+                  <label for="hunting-efficiency">Efficacité de chasse</label>
+                  <output id="hunting-efficiency-output" for="hunting-efficiency">70&nbsp;%</output>
+                </div>
+                <input id="hunting-efficiency" name="huntingEfficiency" type="range" min="0" max="100" value="70">
+                <div class="range-control__scale" aria-hidden="true"><span>0</span><span>100</span></div>
+              </div>
+
+              <p id="reset-notice" class="reset-notice" role="status" hidden>
+                Réinitialisez la simulation pour appliquer ces paramètres.
+              </p>
+
+              <button class="reset-button" id="reset-button" type="button">
+                <svg class="reset-button__icon" aria-hidden="true"><use href="#icon-reset"></use></svg>
+                <span>Réinitialiser</span>
+              </button>
+            </form>
+          </section>
+
+          <section class="current-values panel" aria-labelledby="current-values-title">
+            <h2 id="current-values-title">Valeurs actuelles</h2>
+            <dl class="current-values__list">
+              <div class="current-value current-value--grass">
+                <dt><span class="current-value__dot" aria-hidden="true"></span>Herbe</dt>
+                <dd><strong data-population-count="grass">3&nbsp;842</strong><span>unités</span></dd>
+              </div>
+              <div class="current-value current-value--rabbits">
+                <dt><span class="current-value__dot" aria-hidden="true"></span>Lapins</dt>
+                <dd><strong data-population-count="rabbits">87</strong><span>individus</span></dd>
+              </div>
+              <div class="current-value current-value--foxes">
+                <dt><span class="current-value__dot" aria-hidden="true"></span>Renards</dt>
+                <dd><strong data-population-count="foxes">23</strong><span>individus</span></dd>
+              </div>
+            </dl>
+          </section>
+
+          <section id="selected-animal-panel" class="animal-details panel" aria-labelledby="selected-animal-title" hidden>
+            <h2 id="selected-animal-title">Animal sélectionné</h2>
+            <dl>
+              <div><dt>Espèce</dt><dd id="selected-animal-species">—</dd></div>
+              <div><dt>Âge</dt><dd id="selected-animal-age">—</dd></div>
+              <div><dt>Énergie</dt><dd id="selected-animal-energy">—</dd></div>
+              <div><dt>Descendants</dt><dd id="selected-animal-offspring">—</dd></div>
+              <div><dt>État</dt><dd id="selected-animal-state">—</dd></div>
+            </dl>
+          </section>
+
+          <section id="scenario-panel" class="scenario-panel panel" aria-labelledby="scenario-title" hidden>
+            <h2 id="scenario-title">Scénarios</h2>
+            <div class="scenario-panel__field">
+              <label for="scenario-select">Scénario prédéfini</label>
+              <select id="scenario-select" name="scenario">
+                <option value="balance">Équilibre</option>
+                <option value="rabbit-overpopulation">Surpopulation de lapins</option>
+                <option value="too-many-predators">Trop de prédateurs</option>
+              </select>
+            </div>
+            <button class="secondary-button" id="restore-defaults-button" type="reset" form="parameters-form">
+              Restaurer les paramètres par défaut
+            </button>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <svg class="icon-definitions" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <symbol id="icon-play" viewBox="0 0 24 24">
+        <path d="M7.25 4.55a1 1 0 0 1 1.53-.85l10.3 7.45a1.05 1.05 0 0 1 0 1.7L8.78 20.3a1 1 0 0 1-1.53-.85V4.55Z" fill="currentColor"/>
+      </symbol>
+      <symbol id="icon-pause" viewBox="0 0 24 24">
+        <rect x="5" y="3.5" width="5" height="17" rx="1" fill="currentColor"/>
+        <rect x="14" y="3.5" width="5" height="17" rx="1" fill="currentColor"/>
+      </symbol>
+      <symbol id="icon-reset" viewBox="0 0 24 24">
+        <path d="M5.1 7.1A8.4 8.4 0 1 1 3.6 13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+        <path d="M3.5 4.3v4.2h4.2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="icon-grid" viewBox="0 0 28 28">
+        <rect x="3.25" y="3.25" width="21.5" height="21.5" rx=".75" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.4 3.5v21M17.6 3.5v21M3.5 10.4h21M3.5 17.6h21" fill="none" stroke="currentColor" stroke-width="1.2"/>
+      </symbol>
+      <symbol id="icon-chart" viewBox="0 0 28 28">
+        <path d="M4 3.5v20.2h20.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path d="m7 19 5-6 4 2.8 7-9.1M19.2 6.7H23v3.8" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </symbol>
+      <symbol id="icon-sliders" viewBox="0 0 28 28">
+        <path d="M3.5 7.5h21M3.5 20.5h21" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="10" cy="7.5" r="2.5" fill="#061825" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="18" cy="20.5" r="2.5" fill="#061825" stroke="currentColor" stroke-width="1.5"/>
+      </symbol>
+      <symbol id="icon-help" viewBox="0 0 28 28">
+        <circle cx="14" cy="14" r="11" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M10.9 10.4a3.3 3.3 0 1 1 4.6 3.05c-1.3.55-1.5 1.2-1.5 2.45" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        <circle cx="14" cy="20.1" r="1" fill="currentColor"/>
+      </symbol>
+      <symbol id="icon-grass" viewBox="0 0 96 78">
+        <g fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round">
+          <path d="M47 72C43 48 37 25 29 8M49 72c0-25 1-48 5-66M53 72c5-25 15-42 25-55M44 72c-8-23-18-36-31-48M58 72c10-17 19-28 29-35M38 72c-12-16-22-25-31-29M51 72c-1-18-4-33-9-46M58 72c4-15 6-26 7-38"/>
+        </g>
+      </symbol>
+      <symbol id="icon-rabbit" viewBox="0 0 100 80">
+        <path d="M25 62c-7-2-10-7-10-14 0-13 12-24 31-24 18 0 30 10 30 23 0 11-9 19-23 20H32c-3 0-5-2-7-5Z" fill="currentColor"/>
+        <circle cx="72" cy="30" r="15" fill="currentColor"/>
+        <path d="M67 17C62 7 62 1 66 0c5-1 9 8 10 19M77 17C76 7 79 0 83 1c5 2 4 12 1 22" fill="currentColor"/>
+        <circle cx="79" cy="28" r="2" fill="#071722"/>
+        <circle cx="16" cy="50" r="7" fill="currentColor"/>
+        <path d="M35 64c-1 7 2 10 10 10h14M65 62c2 6 7 8 14 7" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="icon-fox" viewBox="0 0 112 78">
+        <path d="M29 34c12-12 33-15 50-6 10 5 15 14 13 23-2 9-11 13-24 13H40c-13 0-21-7-19-16 1-5 4-10 8-14Z" fill="currentColor"/>
+        <path d="m76 31 10-15 18 9 6 5-13 5-10 10-11-14Z" fill="currentColor"/>
+        <path d="m83 19 2-15 9 13M94 20l8-11 2 17" fill="currentColor"/>
+        <circle cx="99" cy="27" r="1.8" fill="#071722"/>
+        <path d="M34 37C22 31 9 36 4 47 1 53 3 63 0 75c15-4 25-14 30-26 2-5 4-8 8-10l-4-2Z" fill="currentColor"/>
+        <path d="m44 59-6 14M62 61l4 12M79 59l9 12" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>
+      </symbol>
+    </svg>
+  </body>
+</html>
