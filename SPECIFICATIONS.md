@@ -110,6 +110,8 @@ L’écran principal contient :
 5. une légende permettant d’identifier chaque espèce ;
 6. un compteur indiquant le jour ou le tour courant.
 
+Le Canvas utilise un espace logique fixe de `960 × 590` unités, identique aux dimensions logiques du monde. Sa taille CSS peut s’adapter à l’espace disponible sans modifier les coordonnées du modèle. Le système de rendu est responsable de la conversion entre taille CSS, densité de pixels et coordonnées logiques.
+
 Le Canvas doit occuper la majeure partie de l’espace disponible sur un écran d’ordinateur. Sur un écran étroit, les panneaux peuvent être placés sous le Canvas.
 
 ### 6.2 Commandes
@@ -146,24 +148,26 @@ Les éléments sont dessinés avec des formes vectorielles simples dans le Canva
 - **lapin :** corps ovale, tête ronde et deux oreilles allongées ;
 - **renard :** corps allongé, tête triangulaire et grande queue ;
 - **sélection :** cercle ou halo autour de l’animal ;
-- **terrain :** fond évoquant la terre, éventuellement complété par quelques obstacles ou zones d’eau.
+- **terrain :** fond évoquant la terre, sans obstacle ni zone d’eau dans la première version locale.
 
 Les renards et les lapins doivent se distinguer par leur silhouette, et pas uniquement par leur couleur, afin de préserver la lisibilité pour les personnes daltoniennes.
 
 Les barres d’énergie de tous les animaux ne sont pas affichées en permanence.
 
+Les obstacles, les zones d’eau et leurs règles de collision sont reportés après la première version locale. Ils ne doivent pas complexifier le modèle, la configuration ou le rendu initial.
+
 ## 7. Modèle de simulation
 
 ### 7.1 Représentation du monde
 
-- Le monde possède une largeur et une hauteur logiques.
+- Le monde possède une largeur logique de `960` unités et une hauteur logique de `590` unités dans la première version.
 - L’herbe est stockée dans une grille, initialement prévue en `40 × 25` cellules.
 - Chaque cellule possède un niveau d’herbe compris entre `0` et `100`.
 - Les animaux utilisent des coordonnées libres `x` et `y`.
 - Une structure spatiale simple peut répartir les animaux par zones pour accélérer la recherche de voisins.
-- Les animaux ne peuvent pas sortir des limites du terrain ni traverser un obstacle infranchissable.
+- Les animaux ne peuvent pas sortir des limites du terrain.
 
-La première implémentation peut placer tous les éléments sur une grille. Des déplacements visuellement fluides peuvent ensuite être obtenus par interpolation, sans modifier les règles de la simulation.
+Les obstacles ne font pas partie de la première version locale. L’interpolation des déplacements est également reportée : le rendu utilise directement les positions logiques produites par le moteur. Elle pourra être ajoutée ultérieurement sans modifier les règles de la simulation.
 
 ### 7.2 Données communes aux animaux
 
@@ -190,7 +194,7 @@ Un lapin doit pouvoir :
 
 - détecter l’herbe proche ;
 - se diriger vers une cellule contenant de l’herbe lorsqu’il en a besoin ;
-- manger l’herbe présente sous lui ou suffisamment proche ;
+- manger l’herbe de la cellule contenant le centre de sa position ;
 - récupérer de l’énergie en mangeant ;
 - détecter un renard à proximité ;
 - privilégier la fuite lorsqu’un renard est dangereux ;
@@ -203,9 +207,9 @@ Un lapin doit pouvoir :
 Un renard doit pouvoir :
 
 - détecter les lapins dans son rayon de perception ;
-- choisir une cible selon une règle simple et explicable, par exemple le lapin le plus proche ;
+- choisir le lapin vivant le plus proche ; en cas d’égalité de distance, choisir celui dont l’identifiant est le plus petit ;
 - poursuivre sa cible ;
-- consommer un lapin lorsqu’il se trouve à portée ;
+- consommer un lapin lorsqu’il se trouve dans la portée de capture configurable, initialement fixée à `12` unités logiques ;
 - récupérer de l’énergie après une capture ;
 - errer lorsqu’aucune proie n’est détectée ;
 - se reproduire lorsque les conditions sont remplies ;
@@ -265,9 +269,15 @@ Le moteur centralise l’ordre des opérations :
 
 Les intentions sont calculées avant leur application afin de limiter les résultats dépendant de l’ordre des animaux dans un tableau.
 
+Lorsqu’un animal n’a aucune cible prioritaire, sa direction d’errance est obtenue exclusivement avec `RandomGenerator`, sous la forme d’un angle compris entre `0` inclus et `2π` exclu. Toute autre égalité entre cibles de même priorité est résolue en choisissant l’entité dont l’identifiant est le plus petit.
+
+Si plusieurs renards tentent de capturer le même lapin pendant un tour, les intentions de capture sont résolues par identifiant croissant des renards. Seul le premier renard dont la capture reste valide consomme le lapin et reçoit l’énergie prévue ; les autres captures échouent sans gain d’énergie.
+
 ## 8. Temps, boucle et reproductibilité
 
 - Le moteur utilise un pas de simulation fixe.
+- Un tour représente une unité de temps logique sans équivalence scientifique directe.
+- Dix tours correspondent à un jour dans la configuration initiale.
 - Le rendu visuel est séparé de la mise à jour de l’état.
 - La vitesse choisie modifie le nombre de tours simulés, pas les règles biologiques.
 - Mettre en pause arrête l’évolution de l’état, mais l’interface reste utilisable.
@@ -283,11 +293,13 @@ Les paramètres suivants doivent être regroupés dans un objet de configuration
 
 ### Monde et temps
 
-- dimensions du terrain ;
-- dimensions de la grille d’herbe ;
-- nombre de tours par jour ;
+- dimensions du terrain, initialement `960 × 590` unités logiques ;
+- dimensions de la grille d’herbe, initialement `40 × 25` cellules ;
+- nombre de tours par jour, initialement `10` ;
 - graine aléatoire ;
-- densité et position des obstacles.
+- durée maximale, initialement `365` jours.
+
+Les obstacles sont reportés après la première version locale. Leur densité et leur position ne sont donc pas des paramètres obligatoires de la configuration initiale.
 
 ### Herbe
 
@@ -299,6 +311,7 @@ Les paramètres suivants doivent être regroupés dans un objet de configuration
 ### Lapins
 
 - population initiale ;
+- limite de sécurité de la population, initialement `500` individus ;
 - énergie initiale et maximale ;
 - vitesse ;
 - coût de déplacement ;
@@ -311,11 +324,12 @@ Les paramètres suivants doivent être regroupés dans un objet de configuration
 ### Renards
 
 - population initiale ;
+- limite de sécurité de la population, initialement `200` individus ;
 - énergie initiale et maximale ;
 - vitesse ;
 - coût de déplacement ;
 - rayon de perception des lapins ;
-- portée de capture ;
+- portée de capture, initialement `12` unités logiques ;
 - énergie obtenue par capture ;
 - seuil et coût de reproduction ;
 - délai entre deux reproductions ;
@@ -356,7 +370,7 @@ L’état de la simulation ne doit jamais dépendre directement du Canvas. Le mo
 ### 12.2 Classes principales
 
 - `Simulation` : contrôle le temps et l’ordre des opérations d’un tour.
-- `World` : contient les dimensions, la grille d’herbe et les obstacles.
+- `World` : contient les dimensions et la grille d’herbe ; les obstacles pourront lui être ajoutés dans une version ultérieure.
 - `Animal` : classe de base limitée aux données et comportements communs.
 - `Rabbit` : comportement spécialisé du lapin.
 - `Fox` : comportement spécialisé du renard.
@@ -475,10 +489,10 @@ Toutes les entrées sont validées côté serveur. Les erreurs utilisent un stat
 
 - La simulation doit rester utilisable avec les populations prévues par les scénarios fournis.
 - Les recherches de voisins ne doivent pas comparer systématiquement chaque animal avec tous les autres lorsque la population devient importante.
-- Une limite configurable de population peut prévenir le blocage du navigateur.
+- Les limites de sécurité sont configurables et valent initialement `500` lapins et `200` renards afin de prévenir le blocage du navigateur.
 - Une valeur invalide dans le panneau de paramètres doit être refusée avec un message compréhensible.
 - Une erreur de rendu ne doit pas modifier silencieusement l’état de la simulation.
-- La simulation doit s’arrêter proprement si toutes les espèces animales ont disparu ou lorsqu’une limite de durée configurée est atteinte.
+- La simulation doit s’arrêter proprement lorsque les populations de lapins et de renards sont toutes deux nulles ou lorsque la durée maximale configurable est atteinte. Cette durée vaut initialement `365` jours, soit `3 650` tours avec la configuration temporelle par défaut.
 
 Les objectifs chiffrés de performance seront définis après le premier prototype mesurable.
 
@@ -597,18 +611,30 @@ La version locale est considérée comme terminée lorsque :
 - aucune erreur bloquante connue ne survient pendant une utilisation normale ;
 - l’ensemble du code important peut être expliqué par son auteur.
 
-## 19. Questions restant à décider
+## 19. Décisions prises et questions restantes
 
-Les décisions suivantes doivent être prises au moment indiqué, puis intégrées à ce document :
+### 19.1 Décisions prises pour la première version locale
 
-- dimensions exactes du Canvas et comportement lors du redimensionnement ;
-- présence et règles exactes des obstacles ou zones d’eau ;
-- unité de temps et nombre de tours correspondant à un jour ;
-- formule de sélection d’une direction et gestion des égalités ;
+Décisions adoptées le 18 août 2026 :
+
+- le monde et le Canvas utilisent un espace logique fixe de `960 × 590` unités ; seul l’affichage CSS est redimensionné ;
+- les obstacles, les zones d’eau et l’interpolation visuelle sont reportés après la première version locale ;
+- un tour est une unité logique et `10` tours correspondent initialement à un jour ;
+- toutes les directions aléatoires proviennent de `RandomGenerator` ;
+- les égalités entre cibles sont résolues par l’identifiant le plus petit ;
+- un lapin mange l’herbe de la cellule contenant le centre de sa position ;
+- la portée initiale de capture d’un renard est de `12` unités logiques et reste configurable ;
+- les conflits de capture sont résolus par identifiant croissant des renards, sans double consommation ni double gain d’énergie ;
+- les limites initiales sont de `500` lapins, `200` renards et `365` jours ;
+- la simulation s’arrête par extinction lorsque les populations de lapins et de renards sont toutes deux nulles.
+
+Ces valeurs sont des choix techniques initiaux. Elles peuvent être ajustées pendant l’équilibrage, mais leur signification et les règles de résolution ne doivent pas changer sans mise à jour de ce document.
+
+### 19.2 Questions restant à décider
+
+Les décisions suivantes seront prises au moment indiqué, puis intégrées aux sections normatives concernées :
+
 - valeurs par défaut d’énergie, de vitesse, de perception, d’âge et de reproduction ;
-- distance exacte permettant de manger ou de capturer ;
-- règle utilisée si plusieurs renards ciblent le même lapin ;
-- limite de population et limite de durée ;
 - choix de la base de données pour la partie PHP ;
 - format précis de comparaison de deux simulations ;
 - stratégie de test sans dépendance ou avec un outil de test léger.
