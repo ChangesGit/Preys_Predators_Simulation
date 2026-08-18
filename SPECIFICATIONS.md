@@ -303,39 +303,39 @@ Les obstacles sont reportés après la première version locale. Leur densité e
 
 ### Herbe
 
-- niveau initial minimal et maximal ;
-- vitesse de repousse ;
-- quantité consommée par un lapin ;
-- énergie transmise par unité consommée.
+- niveau initial minimal de `40` et maximal de `80` par cellule ;
+- vitesse de repousse initiale de `0,15` unité par tour ;
+- quantité initialement consommée par un lapin de `20` unités par repas ;
+- énergie transmise de `0,5` point d’énergie par unité consommée.
 
 ### Lapins
 
-- population initiale ;
+- population initiale de `10` individus ;
 - limite de sécurité de la population, initialement `500` individus ;
-- énergie initiale et maximale ;
-- vitesse ;
-- coût de déplacement ;
-- rayon de perception de l’herbe ;
-- rayon de perception des renards ;
-- seuil et coût de reproduction ;
-- délai entre deux reproductions ;
-- âge maximal.
+- énergie initiale de `70` et énergie maximale de `100` ;
+- vitesse initiale de `2,5` unités logiques par tour ;
+- coût de déplacement initial de `0,2` point d’énergie par tour ;
+- rayon initial de perception de l’herbe de `80` unités logiques ;
+- rayon initial de perception des renards de `100` unités logiques ;
+- seuil initial de reproduction de `80` points d’énergie et coût de `35` points ;
+- délai initial de `50` tours entre deux reproductions ;
+- âge maximal initial de `1 200` tours.
 
 ### Renards
 
-- population initiale ;
+- population initiale de `3` individus ;
 - limite de sécurité de la population, initialement `200` individus ;
-- énergie initiale et maximale ;
-- vitesse ;
-- coût de déplacement ;
-- rayon de perception des lapins ;
+- énergie initiale de `90` et énergie maximale de `120` ;
+- vitesse initiale de `3,2` unités logiques par tour ;
+- coût de déplacement initial de `0,35` point d’énergie par tour ;
+- rayon initial de perception des lapins de `150` unités logiques ;
 - portée de capture, initialement `12` unités logiques ;
-- énergie obtenue par capture ;
-- seuil et coût de reproduction ;
-- délai entre deux reproductions ;
-- âge maximal.
+- énergie initialement obtenue par capture de `45` points ;
+- seuil initial de reproduction de `100` points d’énergie et coût de `45` points ;
+- délai initial de `100` tours entre deux reproductions ;
+- âge maximal initial de `1 800` tours.
 
-Les valeurs biologiques définitives sont à déterminer pendant la phase d’équilibrage. Les premières valeurs choisies doivent être documentées dans le code et centralisées dans la configuration par défaut.
+Ces valeurs sont des paramètres techniques provisoires, centralisés dans `src/config/defaultSettings.js`. Elles ne constituent pas un modèle scientifique réaliste et seront ajustées pendant la phase d’équilibrage sans être dispersées dans le moteur.
 
 ## 10. Statistiques
 
@@ -350,6 +350,8 @@ Les valeurs biologiques définitives sont à déterminer pendant la phase d’é
 Le graphique affiche au minimum trois courbes : herbe, lapins et renards. Comme leurs échelles peuvent être très différentes, l’interface doit soit normaliser clairement les valeurs, soit employer des axes lisibles et explicitement légendés.
 
 Un nombre maximal de points affichés peut être appliqué pour préserver les performances lors des longues simulations, sans supprimer les données nécessaires à une sauvegarde finale.
+
+La configuration initiale effectue un relevé tous les `10` tours, soit une fois par jour avec la configuration temporelle par défaut. Le graphique affiche au maximum `200` points, tandis que `Statistics` conserve l’historique complet nécessaire à une sauvegarde finale.
 
 ## 11. Scénarios prédéfinis
 
@@ -635,6 +637,7 @@ Décisions adoptées le 18 août 2026 :
 - les conflits de capture sont résolus par identifiant croissant des renards, sans double consommation ni double gain d’énergie ;
 - les limites initiales sont de `500` lapins, `200` renards et `365` jours ;
 - la simulation s’arrête par extinction lorsque les populations de lapins et de renards sont toutes deux nulles ;
+- les valeurs biologiques provisoires et les paramètres statistiques initiaux sont ceux décrits dans les sections 9 et 10 et centralisés dans `src/config/defaultSettings.js` ; ils seront ajustés pendant l’équilibrage et ne sont pas présentés comme scientifiquement réalistes ;
 - les tests automatisés JavaScript, PHP et API sont reportés ; aucun framework de test n’est installé pour le moment et chaque fonctionnalité importante fait l’objet d’une vérification manuelle immédiate.
 
 Ces valeurs sont des choix techniques initiaux. Elles peuvent être ajustées pendant l’équilibrage, mais leur signification et les règles de résolution ne doivent pas changer sans mise à jour de ce document.
@@ -643,7 +646,6 @@ Ces valeurs sont des choix techniques initiaux. Elles peuvent être ajustées pe
 
 Les décisions suivantes seront prises au moment indiqué, puis intégrées aux sections normatives concernées :
 
-- valeurs par défaut d’énergie, de vitesse, de perception, d’âge et de reproduction ;
 - choix de la base de données pour la partie PHP ;
 - format précis de comparaison de deux simulations.
 
