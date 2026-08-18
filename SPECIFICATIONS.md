@@ -510,9 +510,13 @@ Les objectifs chiffrés de performance seront définis après le premier prototy
 
 ## 16. Tests
 
-### 16.1 Tests du moteur
+Les tests automatisés sont reportés afin de concentrer la phase actuelle sur une version fonctionnelle et explicable. Aucun framework de test n’est installé pour le moment. Ce report ne doit pas conduire à accumuler des erreurs : chaque fonctionnalité importante est vérifiée manuellement dès sa réalisation selon des cas reproductibles.
 
-Les règles du moteur doivent pouvoir être testées sans créer de Canvas. Il faut notamment vérifier que :
+Le moteur reste conçu pour être testable ultérieurement sans créer de Canvas, de DOM ou de boucle navigateur. La séparation du moteur et du rendu, l’injection des paramètres et la centralisation du hasard dans `RandomGenerator` sont obligatoires malgré le report des tests automatisés.
+
+### 16.1 Vérifications du moteur
+
+Les points suivants sont vérifiés manuellement pendant leur réalisation et formeront plus tard la base des tests automatisés :
 
 - l’herbe ne dépasse jamais `100` et ne descend jamais sous `0` ;
 - un animal perd la quantité d’énergie prévue ;
@@ -527,7 +531,7 @@ Les règles du moteur doivent pouvoir être testées sans créer de Canvas. Il f
 
 ### 16.2 Tests de l’interface
 
-Vérifier manuellement ou automatiquement que :
+Vérifier manuellement que :
 
 - lecture, pause, changement de vitesse et réinitialisation fonctionnent ;
 - les compteurs correspondent à l’état du moteur ;
@@ -537,6 +541,8 @@ Vérifier manuellement ou automatiquement que :
 - la mise en page reste utilisable aux largeurs d’écran ciblées.
 
 ### 16.3 Tests PHP ultérieurs
+
+Les tests automatisés PHP et API sont également reportés. Les vérifications manuelles suivantes restent obligatoires pendant la réalisation :
 
 - validation des données reçues ;
 - création, lecture, modification et suppression d’un scénario ;
@@ -566,7 +572,7 @@ Vérifier manuellement ou automatiquement que :
 - l’herbe repousse et peut être consommée ;
 - les lapins cherchent de l’herbe, mangent et perdent de l’énergie ;
 - les lapins meurent et se reproduisent selon les règles définies ;
-- les règles principales possèdent des tests.
+- les règles principales sont vérifiées manuellement avec des cas reproductibles ; leur automatisation reste reportée.
 
 ### Étape 4 — Renards
 
@@ -596,9 +602,9 @@ Vérifier manuellement ou automatiquement que :
 - les limites scientifiques du modèle sont expliquées ;
 - aucune fonctionnalité hors périmètre n’empêche de présenter une version stable.
 
-## 18. Définition de « terminé » pour la première version
+## 18. Définition de « terminé fonctionnellement » pour la première version
 
-La version locale est considérée comme terminée lorsque :
+La version locale est considérée comme fonctionnellement réalisée lorsque :
 
 - l’utilisateur peut lancer une simulation herbe–lapins–renards sans serveur ;
 - chaque population évolue selon des règles visibles et explicables ;
@@ -607,9 +613,11 @@ La version locale est considérée comme terminée lorsque :
 - les populations et leur historique sont affichés ;
 - les trois scénarios prédéfinis sont disponibles ;
 - le moteur est indépendant du rendu ;
-- les règles critiques sont testées ;
+- les règles critiques ont été vérifiées manuellement avec des cas reproductibles ;
 - aucune erreur bloquante connue ne survient pendant une utilisation normale ;
 - l’ensemble du code important peut être expliqué par son auteur.
+
+Tant que les tests automatisés restent reportés, le statut exact du projet est : « version fonctionnelle réalisée, tests automatisés hors périmètre pour le moment ». Le projet ne doit pas être présenté comme entièrement conforme à toutes les exigences de test de ces spécifications.
 
 ## 19. Décisions prises et questions restantes
 
@@ -626,7 +634,8 @@ Décisions adoptées le 18 août 2026 :
 - la portée initiale de capture d’un renard est de `12` unités logiques et reste configurable ;
 - les conflits de capture sont résolus par identifiant croissant des renards, sans double consommation ni double gain d’énergie ;
 - les limites initiales sont de `500` lapins, `200` renards et `365` jours ;
-- la simulation s’arrête par extinction lorsque les populations de lapins et de renards sont toutes deux nulles.
+- la simulation s’arrête par extinction lorsque les populations de lapins et de renards sont toutes deux nulles ;
+- les tests automatisés JavaScript, PHP et API sont reportés ; aucun framework de test n’est installé pour le moment et chaque fonctionnalité importante fait l’objet d’une vérification manuelle immédiate.
 
 Ces valeurs sont des choix techniques initiaux. Elles peuvent être ajustées pendant l’équilibrage, mais leur signification et les règles de résolution ne doivent pas changer sans mise à jour de ce document.
 
@@ -636,12 +645,11 @@ Les décisions suivantes seront prises au moment indiqué, puis intégrées aux 
 
 - valeurs par défaut d’énergie, de vitesse, de perception, d’âge et de reproduction ;
 - choix de la base de données pour la partie PHP ;
-- format précis de comparaison de deux simulations ;
-- stratégie de test sans dépendance ou avec un outil de test léger.
+- format précis de comparaison de deux simulations.
 
 ## 20. Principes à préserver pendant le développement
 
-1. Faire fonctionner et tester une règle avant d’en ajouter une nouvelle.
+1. Faire fonctionner et vérifier manuellement une règle avant d’en ajouter une nouvelle, sans laisser les erreurs s’accumuler.
 2. Commencer par l’herbe et les lapins avant d’introduire les renards.
 3. Garder la simulation indépendante du Canvas et de PHP.
 4. Centraliser l’ordre des événements dans `Simulation`.
@@ -651,3 +659,4 @@ Les décisions suivantes seront prises au moment indiqué, puis intégrées aux 
 8. Ne pas créer une classe pour chaque petite donnée : les cellules d’herbe restent des nombres et les paramètres de simples objets.
 9. Stabiliser la simulation locale avant la base de données, les comptes ou les fonctions avancées.
 10. Mettre ce document à jour lorsqu’une décision modifie le comportement attendu de l’application.
+11. Conserver un moteur testable sans Canvas ni DOM afin de pouvoir automatiser ultérieurement les vérifications reportées.
