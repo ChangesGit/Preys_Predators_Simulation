@@ -6,4 +6,6 @@ const dashboardView = new DashboardView();
 const simulation = new Simulation();
 const controller = new Controls(dashboardView, simulation);
 
+console.log(dashboardView);
+
 controller.initialize();

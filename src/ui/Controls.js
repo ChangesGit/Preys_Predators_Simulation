@@ -14,5 +14,15 @@ export class Controls {
             this.dashboardView.setSimulationStatus(this.simulation.isRunning);
         });
         this.dashboardView.setSimulationStatus(this.simulation.isRunning);
+        
+        this.dashboardView.setActiveSpeedButton(this.simulation.speed);
+        //currentTarget au lieu de target pour éviter que l'utilisateur puisse cliquer sur un élément enfant
+        this.dashboardView.speedButtons.forEach(speedButton => {
+            speedButton.addEventListener('click', (e) => {
+                const speed = Number(e.currentTarget.value);
+                this.simulation.setSpeed(speed);
+                this.dashboardView.setActiveSpeedButton(this.simulation.speed);
+            });
+        });
     }
 }

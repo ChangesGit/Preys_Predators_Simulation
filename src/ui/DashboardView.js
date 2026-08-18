@@ -4,6 +4,8 @@ export class DashboardView {
     this.playButton = this.getRequiredElement("play-button");
     this.pauseButton = this.getRequiredElement("pause-button");
     this.simulationState = this.getRequiredElement("simulation-state");
+    this.speedButtons = this.getRequiredElements("[name='speed']");
+
   }
 
   getRequiredElement(elementId) {
@@ -18,6 +20,19 @@ export class DashboardView {
     return element;
   }
 
+  getRequiredElements(selector) {
+    const elements = document.querySelectorAll(selector);
+
+    if(elements.length === 0) {
+      throw new Error(
+        `DashboardView : les éléments correspondant à ${selector} sont introuvables.`
+      );
+    }
+    else {
+      return elements;
+    }
+  }
+
   setSimulationStatus(state) {
     if(state === true) {
         this.simulationState.innerText = "Simulation active";
@@ -25,5 +40,18 @@ export class DashboardView {
     else if(state === false) {
         this.simulationState.innerText = "Simulation en pause";
     }
+  }
+
+  setActiveSpeedButton(speed) {
+    this.speedButtons.forEach(speedButton => {
+      if(Number(speedButton.value) === speed) {
+        speedButton.classList.add("is-active");
+        speedButton.ariaPressed = "true";
+      }
+      else {
+        speedButton.classList.remove("is-active");
+        speedButton.ariaPressed = "false";
+      }
+    });
   }
 }
