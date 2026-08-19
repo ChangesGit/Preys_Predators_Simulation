@@ -24,5 +24,13 @@ export class Controls {
                 this.dashboardView.setActiveSpeedButton(this.simulation.speed);
             });
         });
+
+        this.dashboardView.rangeInputs.forEach(rangeInput => {
+            rangeInput.addEventListener('input', (e) => {
+                const cursor = e.currentTarget;
+                this.dashboardView.updateRangeControl(cursor);
+            })
+            this.dashboardView.updateRangeControl(rangeInput);
+        })
     }
 }

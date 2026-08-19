@@ -704,26 +704,6 @@
     background: #b8cbd9;
   }
 
-  #grass-growth {
-    --range-fill: 62%;
-  }
-
-  #world-capacity {
-    --range-fill: 44.444%;
-  }
-
-  #rabbit-reproduction {
-    --range-fill: 68%;
-  }
-
-  #fox-reproduction {
-    --range-fill: 45%;
-  }
-
-  #hunting-efficiency {
-    --range-fill: 70%;
-  }
-
   .range-control__scale {
     margin-block-start: 2px;
     color: var(--color-muted);

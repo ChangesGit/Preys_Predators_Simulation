@@ -5,7 +5,7 @@ export class DashboardView {
     this.pauseButton = this.getRequiredElement("pause-button");
     this.simulationState = this.getRequiredElement("simulation-state");
     this.speedButtons = this.getRequiredElements("[name='speed']");
-
+    this.rangeInputs = this.getRequiredElements("[type='range']");
   }
 
   getRequiredElement(elementId) {
@@ -53,5 +53,29 @@ export class DashboardView {
         speedButton.ariaPressed = "false";
       }
     });
+  }
+
+  getRangeOutput(rangeInput) {
+    const outputId = rangeInput.id + "-output";
+    return this.getRequiredElement(outputId);
+  }
+
+  updateRangeControl(rangeInput) {
+    const value = Number(rangeInput.value);
+    const rangeOutput = this.getRangeOutput(rangeInput);
+    const min = Number(rangeInput.min);
+    const max = Number(rangeInput.max);
+    const fillPercentage = ((value - min) / (max - min)) * 100;
+    if(rangeInput.name === "worldCapacity") {
+      const numberFormatter = new Intl.NumberFormat("fr-FR");
+
+      rangeOutput.textContent = numberFormatter.format(value);
+    }
+    else {
+      rangeOutput.textContent = value + " %";
+    }
+
+    rangeInput.style.setProperty('--range-fill', fillPercentage+"%");
+
   }
 }
