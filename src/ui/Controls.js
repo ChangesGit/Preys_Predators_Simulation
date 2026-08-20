@@ -2,7 +2,10 @@ export class Controls {
     constructor(dashboardView, simulation) {
         this.dashboardView = dashboardView;
         this.simulation = simulation;
+        this.hasPendingSettings = false;
     }
+
+
 
     initialize() {
         this.dashboardView.playButton.addEventListener('click', () => {
@@ -25,12 +28,24 @@ export class Controls {
             });
         });
 
+        this.hasPendingSettings = false;
+        this.dashboardView.setResetNoticeVisibility(false);
         this.dashboardView.rangeInputs.forEach(rangeInput => {
             rangeInput.addEventListener('input', (e) => {
                 const cursor = e.currentTarget;
                 this.dashboardView.updateRangeControl(cursor);
+                this.displayResetNotice(true);
             })
             this.dashboardView.updateRangeControl(rangeInput);
         })
+
+
+    }
+
+    displayResetNotice(isTrue) {
+        if(this.hasPendingSettings!== isTrue){            
+            this.hasPendingSettings = isTrue;
+            this.dashboardView.setResetNoticeVisibility(isTrue);
+        }
     }
 }

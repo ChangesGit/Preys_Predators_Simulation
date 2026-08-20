@@ -6,6 +6,7 @@ export class DashboardView {
     this.simulationState = this.getRequiredElement("simulation-state");
     this.speedButtons = this.getRequiredElements("[name='speed']");
     this.rangeInputs = this.getRequiredElements("[type='range']");
+    this.resetNotice = this.getRequiredElement("reset-notice");
   }
 
   getRequiredElement(elementId) {
@@ -76,6 +77,10 @@ export class DashboardView {
     }
 
     rangeInput.style.setProperty('--range-fill', fillPercentage+"%");
-
   }
+    setResetNoticeVisibility(isTrue) {
+      this.resetNotice.hidden = !isTrue;
+    }
+
+  
 }
